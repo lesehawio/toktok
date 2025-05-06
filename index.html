@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <title>بازی سرمایه‌داری</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f5f5f5;
+      text-align: center;
+    }
+    .player {
+      border: 2px solid #333;
+      border-radius: 12px;
+      padding: 10px;
+      margin: 10px;
+      display: inline-block;
+      background-color: #ffffff;
+      width: 200px;
+      position: relative;
+    }
+    .status {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      font-size: 18px;
+    }
+    .log {
+      background-color: #eaeaea;
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 10px;
+      margin: 20px auto;
+      width: 90%;
+      text-align: right;
+    }
+    .buttons {
+      margin-top: 10px;
+    }
+    button {
+      margin: 2px;
+      padding: 5px 10px;
+    }
+    input[type="text"] {
+      width: 120px;
+      margin: 5px;
+    }
+    .rich {
+      background-color: #e0ffe0;
+    }
+    .poor {
+      background-color: #ffe0e0;
+    }
+    .enslaved {
+      background-color: #fff0c0;
+    }
+    .turn {
+      border: 3px solid #0000ff;
+    }
+  </style>
+</head>
+<body>
+  <img src="https://cdn.imgurl.ir/uploads/b12534_unnamed.png" alt="لوگوی بازی" style="width: 180px; display: block; margin: 0 auto 20px;" />
+  <h1>بازی سکه دهی آنلاین تُک تُک</h1>
+  <div id="setup">
+    <h2>اضافه کردن بازیکنان</h2>
+    <input type="text" id="newPlayer" placeholder="نام بازیکن">
+    <button onclick="addPlayer()">➕ افزودن بازیکن</button>
+    <button onclick="startGame()">🎲 شروع بازی</button>
+    <div id="playerList"></div>
+  </div>
+  <div id="game" style="display: none;">
+    <hr style="border: none; border-top: 2px solid #000; margin: 20px 0;">
+    <img src="https://cdn.imgurl.ir/uploads/z210539_favpng_bb07d783b2a7e23a3a861d784dd01b41.png" alt="لوگوی بانک" style="width: 50px; display: block; margin: 0 auto 5px;" />
+    <div id="bank">🏛 بانک سلطنتی سرمایه‌گذاری ملکیانس : <span id="bankCoins">111</span> سکه 🏛</div>
+    <h3>نوبت: <span id="currentPlayerName"></span></h3>
+    <div id="players"></div>
+    <div class="log" id="log"></div>
+  </div>
+  <script>
+    let players = [];
+    let bankCoins = 111;
+    let currentPlayerIndex = 0;
+    let loanTimers = {};
+
+    function addPlayer() {
+      const name = document.getElementById('newPlayer').value.trim();
+      if (name && players.length < 10) {
+        players.push({ name, coins: 10, debt: 0, enslavedTo: null, isCapitalist: false });
+        document.getElementById('newPlayer').value = '';
+        renderPlayerList();
+      }
+    }
+
+    function renderPlayerList() {
+      const div = document.getElementById('playerList');
+      div.innerHTML = players.map(p => `<p>${p.name}</p>`).join('');
+    }
+
+    function startGame() {
+      if (players.length >= 2) {
+        document.getElementById('setup').style.display = 'none';
+        document.getElementById('game').style.display = 'block';
+        renderPlayers();
+        updateTurnDisplay();
+      } else {
+        alert('حداقل دو بازیکن نیاز است.');
+      }
+    }
+
+    function renderPlayers() {
+      const container = document.getElementById('players');
+      container.innerHTML = '';
+
+      players.forEach((player, i) => {
+        const div = document.createElement('div');
+        let className = 'player';
+
+        if (player.coins === 0 && player.enslavedTo === null) className += ' poor';
+        else if (player.enslavedTo !== null) className += ' enslaved';
+        else className += ' rich';
+
+        if (i === currentPlayerIndex) className += ' turn';
+        div.className = className;
+
+        let statusIcons = '';
+        if (player.debt > 0) statusIcons += '🏛';
+        if (player.enslavedTo !== null) statusIcons += '⚒';
+        if (player.isCapitalist) statusIcons += '🎩';
+
+        let options = '';
+
+        if (i === currentPlayerIndex) {
+          const current = players[i];
+
+          players.forEach((_, j) => {
+            if (i !== j) {
+              options += `<button onclick="giveCoin(${i}, ${j})">🔁 سکه به ${players[j].name}</button>`;
+            }
+          });
+
+          let enslaveBtn = '';
+          if (current.coins > 0) {
+            players.forEach((target, tIndex) => {
+              if (target.coins === 0 && target.enslavedTo === null) {
+                enslaveBtn += `<button onclick="enslave(${i}, ${tIndex})">🧷 کاپیتالیسم ${target.name}</button>`;
+              }
+            });
+          }
+
+          let freeBtn = '';
+          if (current.isCapitalist) {
+            players.forEach((target, tIndex) => {
+              if (target.enslavedTo === i) {
+                freeBtn += `<button onclick="freeSlave(${i}, ${tIndex})">🔐 آزاد کردن ${target.name}</button>`;
+              }
+            });
+          }
+
+          options += `
+            <input type="number" id="loanAmount" placeholder="مقدار وام">
+            <button onclick="getLoan(${i})">📥 گرفتن وام</button>
+            <button onclick="payBack(${i})">💸 تسویه بدهی</button>
+            <button onclick="giveCoinToBank(${i})">🏦 دادن سکه به بانک</button>
+            ${enslaveBtn}
+            ${freeBtn}
+            <button onclick="skipTurn()">🚫 سکه نمی‌دهم</button>
+          `;
+        } else {
+          // Allow bankrupt players to still take actions
+          options += `<button onclick="getLoan(${i})">📥 گرفتن وام</button>`;
+          options += `<button onclick="giveCoinToBank(${i})">🏦 دادن سکه به بانک</button>`;
+        }
+
+        div.innerHTML = `
+          <div class="status">${statusIcons}</div>
+          <strong>${player.name}</strong><br>
+          💰 ${player.coins} سکه<br>
+          بدهی: ${player.debt}<br>
+          <div class="buttons">${options}</div>
+        `;
+
+        container.appendChild(div);
+      });
+
+      document.getElementById('bankCoins').textContent = bankCoins;
+    }
+
+    function logAction(msg) {
+      const log = document.getElementById('log');
+      const p = document.createElement('p');
+      p.textContent = msg;
+      log.prepend(p);
+    }
+
+    function giveCoin(from, to) {
+      const fromPlayer = players[from];
+      const toPlayer = players[to];
+      const amount = prompt('مقدار سکه را وارد کنید:');
+      if (amount && from === currentPlayerIndex && fromPlayer.coins >= amount) {
+        fromPlayer.coins -= amount;
+        toPlayer.coins += parseInt(amount);
+        logAction(`${fromPlayer.name} به ${toPlayer.name} ${amount} سکه داد.`);
+        nextTurn();
+      }
+    }
+
+    function giveCoinToBank(index) {
+      const player = players[index];
+      const amount = prompt('مقدار سکه‌ای که می‌خواهید به بانک بدهید را وارد کنید:');
+      const coinAmount = parseInt(amount);
+
+      if (!isNaN(coinAmount) && coinAmount > 0 && player.coins >= coinAmount && index === currentPlayerIndex) {
+        player.coins -= coinAmount;
+        bankCoins += coinAmount;
+        logAction(`${player.name} ${coinAmount} سکه به بانک داد.`);
+        nextTurn();
+      } else {
+        alert('مقدار نامعتبر یا سکه کافی ندارید.');
+      }
+    }
+
+    function getLoan(index) {
+      const amount = parseInt(document.getElementById('loanAmount').value);
+      if (index === currentPlayerIndex && bankCoins >= amount && amount > 0) {
+        players[index].coins += amount;
+        players[index].debt += amount;
+        bankCoins -= amount;
+        logAction(`${players[index].name} وام ${amount} سکه‌ای گرفت. بازپرداخت تا 5 دقیقه دیگر.`);
+        startLoanTimer(index);
+        nextTurn();
+      }
+    }
+
+    function startLoanTimer(index) {
+      if (loanTimers[index]) clearTimeout(loanTimers[index]);
+      loanTimers[index] = setTimeout(() => {
+        const player = players[index];
+        if (player.debt > 0) {
+          if (player.coins >= player.debt) {
+            player.coins -= player.debt;
+            bankCoins += player.debt;
+            logAction(`⏰ بانک بدهی ${player.name} را به صورت خودکار برداشت.`);
+          } else {
+            logAction(`💥 ${player.name} نتوانست بدهی را پرداخت کند و ورشکسته شد.`);
+            players.forEach(p => {
+              if (p.enslavedTo === index) {
+                p.enslavedTo = null;
+                logAction(`💼 ${p.name} از سلطه ${player.name} آزاد شد.`);
+              }
+            });
+            player.isCapitalist = false; // حذف 🎩 در صورت ورشکستگی
+          }
+          player.debt = 0;
+          renderPlayers();
+        }
+      }, 300000);
+    }
+
+    function payBack(index) {
+      const player = players[index];
+      if (index === currentPlayerIndex && player.coins >= player.debt && player.debt > 0) {
+        player.coins -= player.debt;
+        bankCoins += player.debt;
+        player.debt = 0;
+        clearTimeout(loanTimers[index]);
+        logAction(`${player.name} بدهی خود را پرداخت کرد.`);
+        nextTurn();
+      }
+    }
+
+    function enslave(masterIndex, targetIndex) {
+      const master = players[masterIndex];
+      const slave = players[targetIndex];
+      if (masterIndex === currentPlayerIndex && bankCoins >= 10 && slave.coins === 0 && slave.enslavedTo === null) {
+        master.coins += 5;
+        slave.coins += 5;
+        slave.enslavedTo = masterIndex;
+        bankCoins -= 10;
+        master.isCapitalist = true;
+        logAction(`${master.name}، ${slave.name} را تحت سلطه درآورد و هر دو ۵ سکه گرفتند.`);
+        nextTurn();
+      }
+    }
+
+    function freeSlave(masterIndex, targetIndex) {
+      const master = players[masterIndex];
+      const slave = players[targetIndex];
+      if (master.isCapitalist && slave.enslavedTo === masterIndex) {
+        slave.enslavedTo = null;
+        master.coins -= 5; // کاهش سکه از سرمایه‌دار
+        logAction(`${master.name} ${slave.name} را آزاد کرد.`);
+        nextTurn();
+      }
+    }
+
+    function checkBankruptcy() {
+      const player = players[currentPlayerIndex];
+      if (player.coins === 0 && player.debt > 0) {
+        logAction(`💥 ${player.name} ورشکسته شد!`);
+        players.forEach(p => {
+          if (p.enslavedTo === currentPlayerIndex) {
+            p.enslavedTo = null;
+            logAction(`💼 ${p.name} از سلطه ${player.name} آزاد شد.`);
+          }
+        });
+        player.isCapitalist = false; // حذف 🎩 در صورت ورشکستگی
+        renderPlayers();
+      }
+    }
+
+    function skipTurn() {
+      logAction(`${players[currentPlayerIndex].name} این نوبت را رد کرد.`);
+      nextTurn();
+    }
+
+    function nextTurn() {
+      checkBankruptcy(); // بررسی ورشکستگی قبل از تغییر نوبت
+      do {
+        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+      } while (players[currentPlayerIndex].enslavedTo !== null);
+      updateTurnDisplay();
+      renderPlayers();
+    }
+
+    function updateTurnDisplay() {
+      document.getElementById('currentPlayerName').textContent = players[currentPlayerIndex].name;
+    }
+  </script>
+</body>
+</html>

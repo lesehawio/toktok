@@ -73,7 +73,7 @@
 </head>
 <body>
   <img src="https://cdn.imgurl.ir/uploads/b12534_unnamed.png" alt="لوگوی بازی" style="width: 180px; display: block; margin: 0 auto 20px;" />
-  <h1>بازی سکه دهی آنلاین تُک تُک</h1>
+  <h1>بازی obro دهی آنلاین تُک تُک</h1>
   <div id="setup">
     <h2>اضافه کردن بازیکنان</h2>
     <input type="text" id="newPlayer" placeholder="نام بازیکن">
@@ -84,7 +84,7 @@
   <div id="game" style="display: none;">
     <hr style="border: none; border-top: 2px solid #000; margin: 20px 0;">
     <img src="https://cdn.imgurl.ir/uploads/z210539_favpng_bb07d783b2a7e23a3a861d784dd01b41.png" alt="لوگوی بانک" style="width: 50px; display: block; margin: 0 auto 5px;" />
-    <div id="bank">🏛 بانک سلطنتی سرمایه‌گذاری ملکیانس : <span id="bankCoins">111</span> سکه 🏛</div>
+    <div id="bank">🏛 بانک سلطنتی سرمایه‌گذاری ملکیانس : <span id="bankCoins">111</span> obro 🏛</div>
     <h3>نوبت: <span id="currentPlayerName"></span></h3>
     <div id="players"></div>
     <div class="log" id="log"></div>
@@ -98,12 +98,18 @@
       <input type="text" id="plaintiffName" placeholder="نام شاکی" disabled>
       <input type="text" id="defendantName" placeholder="نام متشاکی">
       <input type="text" id="complaintReason" placeholder="دلیل شکایت">
-      <input type="number" id="complaintAmount" placeholder="مقدار سکه">
+      <input type="number" id="complaintAmount" placeholder="مقدار obro">
       <button onclick="submitComplaint()">📝 ثبت شکایت</button>
       <input type="number" id="lawyerFee" value="3" disabled>
+      <p>هزینه مشاوره حقوقی: ۱ obro</p>
+      <button onclick="payLegalAdvice()">💼 پرداخت هزینه مشاوره حقوقی</button>
+      <p>هزینه جمع‌آوری شواهد: ۱ obro</p>
+      <button onclick="collectEvidence()">🔍 پرداخت هزینه جمع‌آوری شواهد</button>
+      <p>هزینه درخواست تجدیدنظر: ۳ obro</p>
+      <button onclick="requestAppeal()">📜 درخواست تجدیدنظر</button>
       <button onclick="rejectComplaint(players[currentPlayerIndex])">🛡️ پرداخت هزینه وکیل و لغو شکایت</button>
       <div id="courtDecision"></div>
-      <p>هزینه دادخواهی: ۲ سکه</p>
+      <p>هزینه دادخواهی: ۲ obro</p>
     </div>
   </div>
   <script>
@@ -174,7 +180,7 @@
           } else {
             players.forEach((_, j) => {
               if (i !== j) {
-                options += `<button onclick="giveCoin(${i}, ${j})">🔁 سکه به ${players[j].name}</button>`;
+                options += `<button onclick="giveCoin(${i}, ${j})">🔁 obro به ${players[j].name}</button>`;
               }
             });
 
@@ -200,10 +206,10 @@
               <input type="number" id="loanAmount" placeholder="مقدار وام">
               <button onclick="getLoan(${i})">📥 گرفتن وام</button>
               <button onclick="payBackDebt(${i})">💸 تسویه بدهی وام</button>
-              <button onclick="giveCoinToBank(${i})">🏦 دادن سکه به بانک</button>
+              <button onclick="giveCoinToBank(${i})">🏦 دادن obro به بانک</button>
               ${enslaveBtn}
               ${freeBtn}
-              <button onclick="skipTurn()">🚫 سکه نمی‌دهم</button>
+              <button onclick="skipTurn()">⏭ رد کردن نوبت  </button>
               <button onclick="increaseAssets(${i})">💼 افزایش دارایی</button>
               <button onclick="putAssetInMortgage(${i})">🏠 رهن</button>
               <button onclick="releaseFromMortgage(${i})">🔓 آزاد کردن از رهن</button>
@@ -211,13 +217,13 @@
           }
         } else {
           options += `<button onclick="getLoan(${i})">📥 گرفتن وام</button>`;
-          options += `<button onclick="giveCoinToBank(${i})">🏦 دادن سکه به بانک</button>`;
+          options += `<button onclick="giveCoinToBank(${i})">🏦 دادن obro به بانک</button>`;
         }
 
         div.innerHTML = `
           <div class="status">${statusIcons}</div>
           <strong>${player.name}</strong><br>
-          💰 ${player.coins} سکه<br>
+          💰 ${player.coins} obro<br>
           دارایی‌ها: ${player.assets || 0}<br>
           بدهی: ${player.debt}<br>
           <div class="buttons">${options}</div>
@@ -250,17 +256,17 @@
       }
 
       if (plaintiff.coins < 2) {
-        alert('شما نمی‌توانید شکایت کنید زیرا هزینه شکایت (۲ سکه) را ندارید.');
+        alert('شما نمی‌توانید شکایت کنید زیرا هزینه شکایت (۲ obro) را ندارید.');
         return;
       }
 
       if (plaintiff.coins === 0) {
-        alert('شما نمی‌توانید شکایت کنید زیرا سکه‌ای ندارید.');
+        alert('شما نمی‌توانید شکایت کنید زیرا obro‌ای ندارید.');
         return;
       }
 
       if (isNaN(complaintAmount) || complaintAmount <= 0) {
-        alert('مقدار سکه نامعتبر است.');
+        alert('مقدار obro نامعتبر است.');
         return;
       }
 
@@ -283,7 +289,7 @@
       if (defendant.coins >= complaintAmount) {
         defendant.coins -= complaintAmount;
         plaintiff.coins += complaintAmount;
-        decisionMessage = `${defendant.name} به ${plaintiff.name} ${complaintAmount} سکه پرداخت کرد.`;
+        decisionMessage = `${defendant.name} به ${plaintiff.name} ${complaintAmount} obro پرداخت کرد.`;
       } else {
         decisionMessage = `${defendant.name} به زندان می‌رود.`;
         defendant.inPrison = true;
@@ -304,7 +310,37 @@
         document.getElementById('courtDecision').textContent = `${defendant.name} شکایت را رد کرد.`;
         renderPlayers();
       } else {
-        alert(`${defendant.name} سکه کافی برای پرداخت هزینه وکیل ندارد.`);
+        alert(`${defendant.name} obro کافی برای پرداخت هزینه وکیل ندارد.`);
+      }
+    }
+
+    function payLegalAdvice() {
+      const player = players[currentPlayerIndex];
+      if (player.coins >= 1) {
+        player.coins -= 1;
+        logAction(`${player.name} هزینه مشاوره حقوقی را پرداخت کرد.`);
+      } else {
+        alert('شما obro کافی برای پرداخت هزینه مشاوره حقوقی ندارید.');
+      }
+    }
+
+    function collectEvidence() {
+      const player = players[currentPlayerIndex];
+      if (player.coins >= 1) {
+        player.coins -= 1;
+        logAction(`${player.name} هزینه جمع‌آوری شواهد را پرداخت کرد.`);
+      } else {
+        alert('شما obro کافی برای پرداخت هزینه جمع‌آوری شواهد ندارید.');
+      }
+    }
+
+    function requestAppeal() {
+      const player = players[currentPlayerIndex];
+      if (player.coins >= 3) {
+        player.coins -= 3;
+        logAction(`${player.name} درخواست تجدیدنظر را ثبت کرد.`);
+      } else {
+        alert('شما obro کافی برای پرداخت هزینه درخواست تجدیدنظر ندارید.');
       }
     }
 
@@ -324,27 +360,27 @@
     function giveCoin(from, to) {
       const fromPlayer = players[from];
       const toPlayer = players[to];
-      const amount = prompt('مقدار سکه را وارد کنید:');
+      const amount = prompt('مقدار obro را وارد کنید:');
       if (amount && from === currentPlayerIndex && fromPlayer.coins >= amount) {
         fromPlayer.coins -= amount;
         toPlayer.coins += parseInt(amount);
-        logAction(`${fromPlayer.name} به ${toPlayer.name} ${amount} سکه داد.`);
+        logAction(`${fromPlayer.name} به ${toPlayer.name} ${amount} obro داد.`);
         nextTurn();
       }
     }
 
     function giveCoinToBank(index) {
       const player = players[index];
-      const amount = prompt('مقدار سکه‌ای که می‌خواهید به بانک بدهید را وارد کنید:');
+      const amount = prompt('مقدار obro‌ای که می‌خواهید به بانک بدهید را وارد کنید:');
       const coinAmount = parseInt(amount);
 
       if (!isNaN(coinAmount) && coinAmount > 0 && player.coins >= coinAmount && index === currentPlayerIndex) {
         player.coins -= coinAmount;
         bankCoins += coinAmount;
-        logAction(`${player.name} ${coinAmount} سکه به بانک داد.`);
+        logAction(`${player.name} ${coinAmount} obro به بانک داد.`);
         nextTurn();
       } else {
-        alert('مقدار نامعتبر یا سکه کافی ندارید.');
+        alert('مقدار نامعتبر یا obro کافی ندارید.');
       }
     }
 
@@ -354,7 +390,7 @@
         players[index].coins += amount;
         players[index].debt += amount;
         bankCoins -= amount;
-        logAction(`${players[index].name} وام ${amount} سکه‌ای گرفت. بازپرداخت تا 5 دقیقه دیگر.`);
+        logAction(`${players[index].name} وام ${amount} obro‌ای گرفت. بازپرداخت تا 5 دقیقه دیگر.`);
         startLoanTimer(index);
         nextTurn();
       }
@@ -432,7 +468,7 @@
         slave.enslavedTo = masterIndex;
         bankCoins -= 10;
         master.isCapitalist = true;
-        logAction(`${master.name}، ${slave.name} را تحت سلطه درآورد و هر دو ۵ سکه گرفتند.`);
+        logAction(`${master.name}، ${slave.name} را تحت سلطه درآورد و هر دو ۵ obro گرفتند.`);
         nextTurn();
       }
     }
@@ -442,7 +478,7 @@
       const slave = players[targetIndex];
       if (master.isCapitalist && slave.enslavedTo === masterIndex) {
         slave.enslavedTo = null;
-        master.coins -= 5; // کاهش سکه از سرمایه‌دار
+        master.coins -= 5; // کاهش obro از سرمایه‌دار
         logAction(`${master.name} ${slave.name} را آزاد کرد.`);
         nextTurn();
       }
@@ -458,8 +494,8 @@
       const player = players[index];
       if (player.assets > 0) {
         player.assets--;
-        player.coins += 2; // دریافت ۲ سکه به ازای هر دارایی در رهن
-        logAction(`${player.name} یکی از دارایی‌های خود را در رهن گذاشت و ۲ سکه دریافت کرد.`);
+        player.coins += 2; // دریافت ۲ obro به ازای هر دارایی در رهن
+        logAction(`${player.name} یکی از دارایی‌های خود را در رهن گذاشت و ۲ obro دریافت کرد.`);
         renderPlayers();
       } else {
         alert(`${player.name} دارایی کافی برای رهن ندارد.`);
@@ -469,12 +505,12 @@
     function releaseFromMortgage(index) {
       const player = players[index];
       if (player.coins >= 2) {
-        player.coins -= 2; // پرداخت ۲ سکه برای آزاد کردن از رهن
+        player.coins -= 2; // پرداخت ۲ obro برای آزاد کردن از رهن
         player.assets = (player.assets || 0) + 1; // افزایش دارایی به ازای آزاد کردن
-        logAction(`${player.name} یکی از دارایی‌های خود را آزاد کرد و ۲ سکه پرداخت کرد.`);
+        logAction(`${player.name} یکی از دارایی‌های خود را آزاد کرد و ۲ obro پرداخت کرد.`);
         renderPlayers();
       } else {
-        alert(`${player.name} سکه کافی برای آزاد کردن دارایی از رهن ندارد.`);
+        alert(`${player.name} obro کافی برای آزاد کردن دارایی از رهن ندارد.`);
       }
     }
   </script>

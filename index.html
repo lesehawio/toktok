@@ -1,5 +1,32 @@
 <!DOCTYPE html>
 <html lang="fa">
+<div class="calendar-widget">
+    <div class="calendar-header">
+        <div class="calendar-nav">
+            <button class="prev-month" onclick="changeMonth(-1)">&#8592;</button>
+            <div class="current-month" id="current-month"></div>
+            <button class="next-month" onclick="changeMonth(1)">&#8594;</button>
+        </div>
+    </div>
+    <table class="calendar-table" id="calendar-table">
+        <thead>
+            <tr>
+                <th class="purple">ب</th>
+                <th class="red">ق</th>
+                <th class="blue">آ</th>
+                <th class="green">س</th>
+                <th class="yellow">ز</th>
+                <th class="orange">ن</th>
+                <th class="gray">خ</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Rows of the calendar will be generated here -->
+        </tbody>
+    </table>
+    <div class="event-display" id="event-display">رویداد امروز: هیچ رویدادی وجود ندارد.</div>
+</div>
+
 <head>
   <meta charset="UTF-8">
   <title>بازی سرمایه‌داری</title>
@@ -69,9 +96,191 @@
       width: 250px;
       margin: 20px auto; /* مرکز کردن باکس دادگاه */
     }
-  </style>
-</head>
-<body>
+.calendar-widget {
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    padding: 8px;
+    width: 200px; /* عرض ثابت */
+    max-width: 200px; /* حداکثر عرض */
+    background-color: #ffffff;
+    position: fixed; /* قرارگیری در بالای صفحه */
+    top: 20px; /* فاصله از بالا */
+    left: 20px; /* فاصله از چپ */
+    z-index: 1000; /* در بالای دیگر عناصر */
+    overflow: hidden; /* جلوگیری از بزرگ شدن */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* سایه برای زیبایی */
+}
+
+    .calendar-header {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 8px;
+    }
+    .calendar-nav {
+        display: flex;
+        align-items: center;
+    }
+    .calendar-nav button {
+        background-color: #666;
+        color: #fff;
+        border: none;
+        padding: 4px 6px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 12px;
+        margin: 0 2px;
+        cursor: pointer;
+    }
+    .calendar-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 10px; /* اندازه فونت ثابت */
+    }
+    .calendar-table th, .calendar-table td {
+        padding: 2px;
+        text-align: center;
+        border-bottom: 1px solid #aaa;
+    }
+    .calendar-table th {
+        background-color: #555;
+        color: #ffd700;
+    }
+    .date-cell {
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #000000;
+        position: relative;
+    }
+    .today-cell {
+        background-color: #ffd700;
+        color: #222;
+        font-weight: bold;
+    }
+    .event-display {
+        margin-top: 8px;
+        padding: 4px;
+        background-color: #68ff42;
+        border-radius: 4px;
+        font-size: 10px;
+        white-space: nowrap; /* جلوگیری از شکست خط */
+        overflow: hidden; /* جلوگیری از بزرگ شدن */
+        text-overflow: ellipsis; /* نمایش سه نقطه برای متن طولانی */
+    }
+</style>
+
+<script>
+    let currentDate = new Date();
+
+    const monthNames = [
+        "زهرینا", "نورگا", "ساینه", "فردا", "تایغا", 
+        "آربی‌ا", "سیانا", "خاویرا", "رنگا", "پیکا"
+    ];
+
+    const events = [
+        {
+            title: "روز نقدینگی – Liquidity Day",
+            description: "همه بازیکن‌ها اجازه دارند یک دارایی را بدون هزینه تبدیل به پول نقد کنند.",
+            effect: "جریان نقد بالا، فرصت برای خرید سریع."
+        },
+        {
+            title: "روز اهرم – Leverage Day",
+            description: "بانک به‌طور استثنایی تا ۲ برابر معمول وام می‌دهد، اما بهره دو برابر است.",
+            effect: "فرصت ریسک بالا، سود یا ورشکستگی سریع."
+        },
+        {
+            title: "روز فرصت – Arbitrage Day",
+            description: "قیمت خرید و فروش دارایی‌ها به نفع خریداران کاهش می‌یابد.",
+            effect: "معامله‌گرها سود سریع می‌برند."
+        },
+        {
+            title: "روز ریسک – Speculation Day",
+            description: "می‌توان یک سرمایه را دو برابر اعلام کرد و در صورت موفقیت در یک تاس یا قرعه، سود دوبرابر گرفت.",
+            effect: "قمار هوشمند، ریسک بالا."
+        },
+        {
+            title: "روز پخش دارایی – Diversification Day",
+            description: "بازیکن‌ها باید یکی از دارایی‌هایشان را واگذار کنند، ولی در عوض یک دارایی تصادفی جدید می‌گیرند.",
+            effect: "تنوع اجباری، فرصت کشف."
+        },
+        {
+            title: "روز بیمه – Hedging Day",
+            description: "هر بازیکن می‌تواند یک دارایی را 'ضدضرر' کند، یعنی تا یک روز از سقوط یا تصرف محافظت شود.",
+            effect: "محافظت استراتژیک."
+        },
+        {
+            title: "روز رشد – Asset Growth Day",
+            description: "هر دارایی‌ای که دست بازیکن باشد، یک واحد ارزش اضافه می‌گیرد.",
+            effect: "انباشته‌سازی و سود بلندمدت."
+        },
+        {
+            title: "روز سقوط – Downturn Day",
+            description: "ارزش همه دارایی‌ها یک پله سقوط می‌کند مگر آن‌هایی که در رهن بانک‌اند.",
+            effect: "هشدار برای جمع‌آوری نقد و محافظت."
+        }
+    ];
+
+    function getRandomEvent() {
+        const randomEvent = events[Math.floor(Math.random() * events.length)];
+        return randomEvent;
+    }
+
+    function renderCalendar() {
+        const month = currentDate.getMonth();
+        const year = currentDate.getFullYear();
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        document.getElementById('current-month').innerText = `${monthNames[month]} ${year}`;
+
+        const tbody = document.querySelector('#calendar-table tbody');
+        tbody.innerHTML = '';
+
+        let row = document.createElement('tr');
+        for (let i = 0; i < firstDay; i++) {
+            row.appendChild(document.createElement('td'));
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const cell = document.createElement('td');
+            const dateCell = document.createElement('div');
+            dateCell.className = 'date-cell';
+            dateCell.innerText = day;
+
+            if (day === currentDate.getDate() && month === new Date().getMonth() && year === new Date().getFullYear()) {
+                dateCell.classList.add('today-cell');
+            }
+
+            row.appendChild(cell);
+            cell.appendChild(dateCell);
+
+            if ((day + firstDay) % 7 === 0) {
+                tbody.appendChild(row);
+                row = document.createElement('tr');
+            }
+        }
+
+        if (row.children.length > 0) {
+            tbody.appendChild(row);
+        }
+
+        // نمایش رویداد جدید
+        const event = getRandomEvent();
+        document.getElementById('event-display').innerHTML = `<strong>${event.title}</strong><br>${event.description}<br><em>${event.effect}</em>`;
+    }
+
+    function changeMonth(direction) {
+        currentDate.setMonth(currentDate.getMonth() + direction);
+        renderCalendar();
+    }
+
+    // Initial render
+    renderCalendar();
+</script>
   <img src="https://cdn.imgurl.ir/uploads/b12534_unnamed.png" alt="لوگوی بازی" style="width: 180px; display: block; margin: 0 auto 20px;" />
   <h1>بازی obro دهی آنلاین تُک تُک</h1>
   <div id="setup">

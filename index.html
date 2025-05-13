@@ -280,6 +280,14 @@
 
     // Initial render
     renderCalendar();
+    function updateDate() {
+  currentDate.setDate(currentDate.getDate() + 1); // به جلو بردن روز
+  renderCalendar(); // رندر مجدد تقویم
+}
+
+// هر 5 دقیقه یکبار تاریخ را به جلو ببرید
+setInterval(updateDate, 5 * 60 * 1000); // 5 دقیقه
+
 </script>
   <img src="https://cdn.imgurl.ir/uploads/b12534_unnamed.png" alt="لوگوی بازی" style="width: 180px; display: block; margin: 0 auto 20px;" />
   <h1>بازی obro دهی آنلاین تُک تُک</h1>

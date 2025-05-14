@@ -176,6 +176,13 @@
 <script>
     let currentDate = new Date();
 
+    // تابع برای تنظیم موقعیت عنصر
+    function setPosition(element) {
+        element.style.position = 'absolute'; // موقعیت مطلق
+        element.style.top = '20px'; // فاصله از بالا
+        element.style.left = '20px'; // فاصله از چپ
+        element.style.zIndex = '1000'; // بالاترین لایه
+    }
     const monthNames = [
         "زهرینا", "نورگا", "ساینه", "فردا", "تایغا", 
         "آربی‌ا", "سیانا", "خاویرا", "رنگا", "پیکا"
@@ -239,6 +246,13 @@
 
         const tbody = document.querySelector('#calendar-table tbody');
         tbody.innerHTML = '';
+
+            // استفاده از تابع برای تنظیم موقعیت تقویم
+    window.onload = function() {
+        const calendarWidget = document.querySelector('.calendar-widget'); // انتخاب عنصر تقویم
+        setPosition(calendarWidget); // تنظیم موقعیت
+        renderCalendar(); // رندر تقویم
+    };
 
         let row = document.createElement('tr');
         for (let i = 0; i < firstDay; i++) {

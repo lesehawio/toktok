@@ -303,6 +303,21 @@
 setInterval(updateDate, 5 * 60 * 1000); // 5 دقیقه
 
 </script>
+<div id="day-counter" style="position: absolute; top: 20px; right: 20px; background-color: #fff; border: 1px solid #aaa; padding: 10px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
+  تعداد روزها: <span id="day-count">0</span>
+</div>
+
+<script>
+  let dayCount = 0;
+
+  function updateDayCounter() {
+    dayCount++;
+    document.getElementById('day-count').innerText = dayCount;
+  }
+
+  // هر 5 دقیقه یکبار شمارش روزها را به روز کنید
+  setInterval(updateDayCounter, 5 * 60 * 1000); // 5 دقیقه
+</script>
   <img src="https://cdn.imgurl.ir/uploads/b12534_unnamed.png" alt="لوگوی بازی" style="width: 180px; display: block; margin: 0 auto 20px;" />
   <h1>بازی obro دهی آنلاین تُک تُک</h1>
   <div id="setup">
